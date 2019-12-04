@@ -71,7 +71,7 @@ class ProductList extends localize(i18next)(PageView) {
             columns: [...this.config.columns.filter(column => column.imex !== undefined)]
           }
           openImportPopUp(records, config, async patches => {
-            await this._saveVas(patches)
+            await this._saveProducts(patches)
             history.back()
           })
         }
