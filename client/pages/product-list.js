@@ -316,6 +316,7 @@ class ProductList extends localize(i18next)(PageView) {
                 description
               }
               type
+              expirationPeriod
               weightUnit
               weight
               weightRatio
