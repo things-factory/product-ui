@@ -6,6 +6,7 @@
   "field.aux_value": "보조 값",
   "field.depth": "세로",
   "field.description": "설명",
+  "field.expiration_period": "유통가능 기간",
   "field.height": "높이",
   "field.length_unit": "길이 단위",
   "field.name": "이름",

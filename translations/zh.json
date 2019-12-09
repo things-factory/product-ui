@@ -6,6 +6,7 @@
   "field.aux_value": "aux value",
   "field.depth": "depth",
   "field.description": "描述",
+  "field.expiration_period": "Expiration Period",
   "field.height": "height",
   "field.length_unit": "length unit",
   "field.name": "名字",

@@ -161,6 +161,15 @@ class ProductList extends localize(i18next)(PageView) {
           width: 80
         },
         {
+          type: 'integer',
+          name: 'expirationPeriod',
+          record: { align: 'center', editable: true },
+          imex: { header: 'Expiration Period', key: 'expirationPeriod', width: 50, type: 'integer' },
+          header: i18next.t('field.expiration_period'),
+          sortable: true,
+          width: 80
+        },
+        {
           type: 'string',
           name: 'weightUnit',
           record: { editable: true, align: 'center' },
