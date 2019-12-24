@@ -234,7 +234,7 @@ class ProductList extends localize(i18next)(PageView) {
           width: 80
         },
         {
-          type: 'float',
+          type: 'string',
           name: 'auxValue1',
           record: { editable: true, align: 'center' },
           imex: { header: 'Aux Value 1', key: 'auxValue1', width: 50, type: 'float' },
@@ -250,7 +250,7 @@ class ProductList extends localize(i18next)(PageView) {
           width: 80
         },
         {
-          type: 'float',
+          type: 'string',
           name: 'auxValue2',
           record: { editable: true, align: 'center' },
           imex: { header: 'Aux Value 1', key: 'auxValue2', width: 50, type: 'float' },
@@ -266,7 +266,7 @@ class ProductList extends localize(i18next)(PageView) {
           width: 80
         },
         {
-          type: 'float',
+          type: 'string',
           name: 'auxValue3',
           record: { editable: true, align: 'center' },
           imex: { header: 'Aux Value 3', key: 'auxValue3', width: 50, type: 'float' },
