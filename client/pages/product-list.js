@@ -237,7 +237,7 @@ class ProductList extends localize(i18next)(PageView) {
           type: 'string',
           name: 'auxValue1',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Aux Value 1', key: 'auxValue1', width: 50, type: 'float' },
+          imex: { header: 'Aux Value 1', key: 'auxValue1', width: 50, type: 'string' },
           header: `${i18next.t('field.aux_value')} 1`,
           width: 80
         },
@@ -253,7 +253,7 @@ class ProductList extends localize(i18next)(PageView) {
           type: 'string',
           name: 'auxValue2',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Aux Value 1', key: 'auxValue2', width: 50, type: 'float' },
+          imex: { header: 'Aux Value 2', key: 'auxValue2', width: 50, type: 'string' },
           header: `${i18next.t('field.aux_value')} 2`,
           width: 80
         },
@@ -269,7 +269,7 @@ class ProductList extends localize(i18next)(PageView) {
           type: 'string',
           name: 'auxValue3',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Aux Value 3', key: 'auxValue3', width: 50, type: 'float' },
+          imex: { header: 'Aux Value 3', key: 'auxValue3', width: 50, type: 'string' },
           header: `${i18next.t('field.aux_value')} 3`,
           width: 80
         },
@@ -364,6 +364,16 @@ class ProductList extends localize(i18next)(PageView) {
 
   async _saveProducts(patches) {
     if (patches && patches.length) {
+      patches = patches.map(patch => {
+        patch.weight = parseFloat(patch.weight)
+        patch.weightRatio = parseFloat(patch.weightRatio)
+        patch.width = parseFloat(patch.width)
+        patch.depth = parseFloat(patch.depth)
+        patch.height = parseFloat(patch.height)
+        patch.expirationPeriod = parseFloat(patch.expirationPeriod)
+        return patch
+      })
+
       const response = await client.query({
         query: gql`
             mutation {
