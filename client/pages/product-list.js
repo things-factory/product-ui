@@ -1,7 +1,6 @@
 import '@things-factory/form-ui'
 import '@things-factory/grist-ui'
 import { i18next, localize } from '@things-factory/i18n-base'
-import '@things-factory/import-ui'
 import { openImportPopUp } from '@things-factory/import-ui'
 import { client, CustomAlert, gqlBuilder, isMobileDevice, PageView, ScrollbarStyles } from '@things-factory/shell'
 import gql from 'graphql-tag'
@@ -72,7 +71,7 @@ class ProductList extends localize(i18next)(PageView) {
             columns: [...this.config.columns.filter(column => column.imex !== undefined)]
           }
           openImportPopUp(records, config, async patches => {
-            await this._saveVas(patches)
+            await this._saveProducts(patches)
             history.back()
           })
         }
@@ -153,28 +152,125 @@ class ProductList extends localize(i18next)(PageView) {
           width: 300
         },
         {
-          type: 'float',
-          name: 'weight',
-          record: { editable: true, align: 'center' },
-          imex: { header: 'Weight', key: 'weight', width: 50, type: 'float' },
-          header: i18next.t('field.packing_weight'),
-          width: 80
-        },
-        {
-          type: 'string',
-          name: 'unit',
-          record: { editable: true, align: 'center' },
-          imex: { header: 'Unit', key: 'unit', width: 50, type: 'string' },
-          header: i18next.t('field.unit'),
-          width: 80
-        },
-        {
           type: 'string',
           name: 'type',
           record: { align: 'center', editable: true },
           imex: { header: 'Type', key: 'type', width: 50, type: 'string' },
           header: i18next.t('field.type'),
           sortable: true,
+          width: 80
+        },
+        {
+          type: 'integer',
+          name: 'expirationPeriod',
+          record: { align: 'center', editable: true },
+          imex: { header: 'Expiration Period', key: 'expirationPeriod', width: 50, type: 'integer' },
+          header: i18next.t('field.expiration_period'),
+          sortable: true,
+          width: 80
+        },
+        {
+          type: 'string',
+          name: 'weightUnit',
+          record: { editable: true, align: 'center' },
+          imex: { header: 'Weight Unit', key: 'weightUnit', width: 50, type: 'string' },
+          header: i18next.t('field.weight_unit'),
+          width: 80
+        },
+        {
+          type: 'float',
+          name: 'weight',
+          record: { editable: true, align: 'center' },
+          imex: { header: 'Weight', key: 'weight', width: 50, type: 'float' },
+          header: i18next.t('field.weight'),
+          width: 80
+        },
+        {
+          type: 'float',
+          name: 'weightRatio',
+          record: { editable: true, align: 'center' },
+          imex: { header: 'Weight Ratio', key: 'weightRatio', width: 50, type: 'float' },
+          header: i18next.t('field.weight_ratio'),
+          width: 80
+        },
+        {
+          type: 'string',
+          name: 'lengthUnit',
+          record: { editable: true, align: 'center' },
+          imex: { header: 'Length Unit', key: 'lengthUnit', width: 50, type: 'string' },
+          header: i18next.t('field.length_unit'),
+          width: 80
+        },
+        {
+          type: 'float',
+          name: 'width',
+          record: { editable: true, align: 'center' },
+          imex: { header: 'Width', key: 'width', width: 50, type: 'float' },
+          header: i18next.t('field.width'),
+          width: 80
+        },
+        {
+          type: 'float',
+          name: 'depth',
+          record: { editable: true, align: 'center' },
+          imex: { header: 'Depth', key: 'depth', width: 50, type: 'float' },
+          header: i18next.t('field.depth'),
+          width: 80
+        },
+        {
+          type: 'float',
+          name: 'height',
+          record: { editable: true, align: 'center' },
+          imex: { header: 'Height', key: 'height', width: 50, type: 'float' },
+          header: i18next.t('field.height'),
+          width: 80
+        },
+        {
+          type: 'string',
+          name: 'auxUnit1',
+          record: { editable: true, align: 'center' },
+          imex: { header: 'Aux Unit 1', key: 'auxUnit1', width: 50, type: 'string' },
+          header: `${i18next.t('field.aux_unit')} 1`,
+          width: 80
+        },
+        {
+          type: 'string',
+          name: 'auxValue1',
+          record: { editable: true, align: 'center' },
+          imex: { header: 'Aux Value 1', key: 'auxValue1', width: 50, type: 'string' },
+          header: `${i18next.t('field.aux_value')} 1`,
+          width: 80
+        },
+        {
+          type: 'string',
+          name: 'auxUnit2',
+          record: { editable: true, align: 'center' },
+          imex: { header: 'Aux Unit 2', key: 'auxUnit2', width: 50, type: 'string' },
+          header: `${i18next.t('field.aux_unit')} 2`,
+          width: 80
+        },
+        {
+          type: 'string',
+          name: 'auxValue2',
+          record: { editable: true, align: 'center' },
+          imex: { header: 'Aux Value 2', key: 'auxValue2', width: 50, type: 'string' },
+          header: `${i18next.t('field.aux_value')} 2`,
+          width: 80
+        },
+        {
+          type: 'string',
+          name: 'auxUnit3',
+          record: { editable: true, align: 'center' },
+          imex: { header: 'Aux Unit 3', key: 'auxUnit3', width: 50, type: 'string' },
+          header: `${i18next.t('field.aux_unit')} 3`,
+          width: 80
+        },
+        {
+          type: 'string',
+          name: 'auxValue3',
+          record: { editable: true, align: 'center' },
+          imex: { header: 'Aux Value 3', key: 'auxValue3', width: 50, type: 'string' },
+          header: `${i18next.t('field.aux_value')} 3`,
           width: 80
         },
         {
@@ -214,16 +310,27 @@ class ProductList extends localize(i18next)(PageView) {
             items {
               id
               name
+              description
               productRef {
                 name
                 description
               }
-              unit
-              weight
-              description
               type
+              expirationPeriod
+              weightUnit
+              weight
+              weightRatio
+              lengthUnit
+              width
+              depth
+              height
+              auxUnit1
+              auxValue1
+              auxUnit2
+              auxValue2
+              auxUnit3
+              auxValue3
               updater {
-                id
                 name
                 description
               }
@@ -257,6 +364,16 @@ class ProductList extends localize(i18next)(PageView) {
 
   async _saveProducts(patches) {
     if (patches && patches.length) {
+      patches = patches.map(patch => {
+        patch.weight = parseFloat(patch.weight)
+        patch.weightRatio = parseFloat(patch.weightRatio)
+        patch.width = parseFloat(patch.width)
+        patch.depth = parseFloat(patch.depth)
+        patch.height = parseFloat(patch.height)
+        patch.expirationPeriod = parseFloat(patch.expirationPeriod)
+        return patch
+      })
+
       const response = await client.query({
         query: gql`
             mutation {
