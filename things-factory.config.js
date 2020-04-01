@@ -10,7 +10,7 @@ export default {
     },
     {
       tagname: 'product-option-list',
-      page: 'product_options'
+      page: 'product_option_list'
     }
   ],
   bootstrap
