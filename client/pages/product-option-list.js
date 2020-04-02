@@ -1,9 +1,11 @@
 import '@things-factory/form-ui'
 import '@things-factory/grist-ui'
 import { i18next, localize } from '@things-factory/i18n-base'
+import { openPopup } from '@things-factory/layout-base'
 import { client, CustomAlert, gqlBuilder, isMobileDevice, PageView, ScrollbarStyles } from '@things-factory/shell'
 import gql from 'graphql-tag'
 import { css, html } from 'lit-element'
+import './product-option-values'
 
 class ProductOptionList extends localize(i18next)(PageView) {
   static get properties() {
@@ -89,6 +91,16 @@ class ProductOptionList extends localize(i18next)(PageView) {
         { type: 'gutter', gutterName: 'dirty' },
         { type: 'gutter', gutterName: 'sequence' },
         { type: 'gutter', gutterName: 'row-selector', multiple: true },
+        {
+          type: 'gutter',
+          gutterName: 'button',
+          icon: 'reorder',
+          handlers: {
+            click: (_columns, _data, _column, record, _rowIndex) => {
+              if (record.id) this._openProductOptionValue(record.id, record.name)
+            }
+          }
+        },
         {
           type: 'string',
           name: 'name',
@@ -224,6 +236,19 @@ class ProductOptionList extends localize(i18next)(PageView) {
 
   showToast(message) {
     document.dispatchEvent(new CustomEvent('notify', { detail: { message } }))
+  }
+
+  _openProductOptionValue(id, name) {
+    openPopup(
+      html`
+        <product-option-values .productOptionId="${id}"></product-option-values>
+      `,
+      {
+        backdrop: true,
+        size: 'large',
+        title: i18next.t('title.product_option_values') + '(' + name + ')'
+      }
+    )
   }
 }
 
