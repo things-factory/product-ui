@@ -2,21 +2,14 @@ import '@things-factory/form-ui'
 import '@things-factory/grist-ui'
 import { i18next, localize } from '@things-factory/i18n-base'
 import { openImportPopUp } from '@things-factory/import-ui'
-import {
-  client,
-  CustomAlert,
-  gqlBuilder,
-  isMobileDevice,
-  PageView,
-  ScrollbarStyles,
-  navigate
-} from '@things-factory/shell'
+import { client, CustomAlert, gqlBuilder, isMobileDevice, PageView, ScrollbarStyles } from '@things-factory/shell'
 import gql from 'graphql-tag'
 import { css, html } from 'lit-element'
 
-class ProductList extends localize(i18next)(PageView) {
+class ProductSetList extends localize(i18next)(PageView) {
   static get properties() {
     return {
+      _productId: String,
       searchFields: Array,
       config: Object
     }
@@ -57,33 +50,17 @@ class ProductList extends localize(i18next)(PageView) {
 
   get context() {
     return {
-      title: i18next.t('title.product'),
+      title: i18next.t('title.product_set'),
       actions: [
         {
           title: i18next.t('button.save'),
-          action: () => this._saveProducts(this.dataGrist.exportPatchList({ flagName: 'cuFlag ' }))
+          action: () => this._saveProductSets(this.dataGrist.exportPatchList({ flagName: 'cuFlag ' }))
         },
         {
           title: i18next.t('button.delete'),
-          action: this._deleteProducts.bind(this)
+          action: this._deleteProductSets.bind(this)
         }
-      ],
-      exportable: {
-        name: i18next.t('title.product'),
-        data: this._exportableData.bind(this)
-      },
-      importable: {
-        handler: records => {
-          const config = {
-            rows: this.config.rows,
-            columns: [...this.config.columns.filter(column => column.imex !== undefined)]
-          }
-          openImportPopUp(records, config, async patches => {
-            await this._saveProducts(patches)
-            history.back()
-          })
-        }
-      }
+      ]
     }
   }
 
@@ -105,13 +82,6 @@ class ProductList extends localize(i18next)(PageView) {
         }
       },
       {
-        label: i18next.t('field.product_ref'),
-        name: 'productRef',
-        type: 'object',
-        queryName: 'products',
-        field: 'name'
-      },
-      {
         label: i18next.t('field.type'),
         name: 'type',
         props: {
@@ -121,25 +91,14 @@ class ProductList extends localize(i18next)(PageView) {
     ]
 
     this.config = {
-      rows: {
-        handlers: { click: this._setProductRefCondition.bind(this) },
-        selectable: { multiple: true }
-      },
+      // rows: {
+      //   handlers: { click: this._setProductRefCondition.bind(this) },
+      //   selectable: { multiple: true }
+      // },
       columns: [
         { type: 'gutter', gutterName: 'dirty' },
         { type: 'gutter', gutterName: 'sequence' },
         { type: 'gutter', gutterName: 'row-selector', multiple: true },
-        {
-          type: 'gutter',
-          gutterName: 'button',
-          icon: 'reorder',
-          handlers: {
-            click: (_columns, _data, _column, record, _rowIndex) => {
-              if (record.id) if (record.id) navigate(`product_set_list?productId=${record.id}`)
-              // if (record.id) this._openProductOptionValue(record.id, record.name)
-            }
-          }
-        },
         {
           type: 'string',
           name: 'name',
@@ -313,15 +272,19 @@ class ProductList extends localize(i18next)(PageView) {
 
   pageUpdated(changes, lifecycle) {
     if (this.active) {
+      this._productId = lifecycle.params.productId || this._productId || ''
       this.dataGrist.fetch()
     }
+    // if (this.active) {
+    //   this.dataGrist.fetch()
+    // }
   }
 
   async fetchHandler({ page, limit, sorters = [{ name: 'name' }] }) {
     const response = await client.query({
       query: gql`
         query {
-          products(${gqlBuilder.buildArgs({
+          productSets(${gqlBuilder.buildArgs({
             filters: await this.searchForm.getQueryFilters(),
             pagination: { page, limit },
             sortings: sorters
@@ -330,7 +293,7 @@ class ProductList extends localize(i18next)(PageView) {
               id
               name
               description
-              productRef {
+              productSupersede {
                 name
                 description
               }
@@ -363,25 +326,25 @@ class ProductList extends localize(i18next)(PageView) {
 
     if (!response.errors) {
       return {
-        total: response.data.products.total || 0,
-        records: response.data.products.items || []
+        total: response.data.productSets.total || 0,
+        records: response.data.productSets.items || []
       }
     }
   }
 
-  _setProductRefCondition(_columns, _data, _column, record, _rowIndex) {
-    this.config.columns.map(column => {
-      if (column.name === 'productRef') {
-        if (record && record.id) {
-          column.record.options.basicArgs = { filters: [{ name: 'id', operator: 'noteq', value: record.id }] }
-        } else {
-          delete column.record.options.basicArgs
-        }
-      }
-    })
-  }
+  // _setProductRefCondition(_columns, _data, _column, record, _rowIndex) {
+  //   this.config.columns.map(column => {
+  //     if (column.name === 'productRef') {
+  //       if (record && record.id) {
+  //         column.record.options.basicArgs = { filters: [{ name: 'id', operator: 'noteq', value: record.id }] }
+  //       } else {
+  //         delete column.record.options.basicArgs
+  //       }
+  //     }
+  //   })
+  // }
 
-  async _saveProducts(patches) {
+  async _saveProductSets(patches) {
     if (patches && patches.length) {
       patches = patches.map(patch => {
         patch.weight = parseFloat(patch.weight)
@@ -396,7 +359,7 @@ class ProductList extends localize(i18next)(PageView) {
       const response = await client.query({
         query: gql`
             mutation {
-              updateMultipleProduct(${gqlBuilder.buildArgs({
+              updateMultipleProductSet(${gqlBuilder.buildArgs({
                 patches
               })}) {
                 name
@@ -417,7 +380,7 @@ class ProductList extends localize(i18next)(PageView) {
     }
   }
 
-  async _deleteProducts() {
+  async _deleteProductSets() {
     const ids = this.dataGrist.selected.map(record => record.id)
     if (ids && ids.length) {
       const anwer = await CustomAlert({
@@ -433,7 +396,7 @@ class ProductList extends localize(i18next)(PageView) {
       const response = await client.query({
         query: gql`
           mutation {
-            deleteProducts(${gqlBuilder.buildArgs({ ids })})
+            deleteProductSets(${gqlBuilder.buildArgs({ ids })})
           }
         `
       })
@@ -450,40 +413,9 @@ class ProductList extends localize(i18next)(PageView) {
     }
   }
 
-  _exportableData() {
-    let records = []
-    if (this.dataGrist.selected && this.dataGrist.selected.length > 0) {
-      records = this.dataGrist.selected
-    } else {
-      records = this.dataGrist.data.records
-    }
-
-    var headerSetting = this.dataGrist._config.columns
-      .filter(column => column.type !== 'gutter' && column.record !== undefined && column.imex !== undefined)
-      .map(column => {
-        return column.imex
-      })
-
-    var data = records.map(item => {
-      return {
-        id: item.id,
-        ...this.config.columns
-          .filter(column => column.type !== 'gutter' && column.record !== undefined && column.imex !== undefined)
-          .reduce((record, column) => {
-            record[column.imex.key] = column.imex.key
-              .split('.')
-              .reduce((obj, key) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined), item)
-            return record
-          }, {})
-      }
-    })
-
-    return { header: headerSetting, data: data }
-  }
-
   showToast(message) {
     document.dispatchEvent(new CustomEvent('notify', { detail: { message } }))
   }
 }
 
-window.customElements.define('product-list', ProductList)
+window.customElements.define('product-set-list', ProductSetList)

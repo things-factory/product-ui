@@ -11,6 +11,10 @@ export default {
     {
       tagname: 'product-option-list',
       page: 'product_option_list'
+    },
+    {
+      tagname: 'product-set-list',
+      page: 'product_set_list'
     }
   ],
   bootstrap
