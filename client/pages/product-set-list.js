@@ -1,7 +1,7 @@
 import '@things-factory/form-ui'
 import '@things-factory/grist-ui'
 import { i18next, localize } from '@things-factory/i18n-base'
-import { openImportPopUp } from '@things-factory/import-ui'
+import { openPopup } from '@things-factory/layout-base'
 import {
   client,
   CustomAlert,
@@ -14,6 +14,7 @@ import {
 import { getCodeByName } from '@things-factory/code-base'
 import gql from 'graphql-tag'
 import { css, html } from 'lit-element'
+import './product-set-option'
 
 class ProductSetList extends localize(i18next)(PageView) {
   static get properties() {
@@ -109,14 +110,23 @@ class ProductSetList extends localize(i18next)(PageView) {
     ]
 
     this.config = {
-      // rows: {
-      //   handlers: { click: this._setProductRefCondition.bind(this) },
-      //   selectable: { multiple: true }
-      // },
+      rows: {
+        selectable: { multiple: true }
+      },
       columns: [
         { type: 'gutter', gutterName: 'dirty' },
         { type: 'gutter', gutterName: 'sequence' },
         { type: 'gutter', gutterName: 'row-selector', multiple: true },
+        {
+          type: 'gutter',
+          gutterName: 'button',
+          icon: 'reorder',
+          handlers: {
+            click: (_columns, _data, _column, record, _rowIndex) => {
+              if (record.id) this._openProductSetOption(record.id, record.name)
+            }
+          }
+        },
         {
           type: 'string',
           name: 'name',
@@ -382,6 +392,19 @@ class ProductSetList extends localize(i18next)(PageView) {
   //   })
   // }
 
+  _openProductSetOption(id, name) {
+    openPopup(
+      html`
+        <product-set-option .productSetId="${id}"></product-set-option>
+      `,
+      {
+        backdrop: true,
+        size: 'large',
+        title: i18next.t('title.product_options') + '(' + name + ')'
+      }
+    )
+  }
+
   async _saveProductSets(patches) {
     if (patches && patches.length) {
       patches = patches.map(patch => {
@@ -429,8 +452,6 @@ class ProductSetList extends localize(i18next)(PageView) {
         confirmButton: { text: i18next.t('button.delete') },
         cancelButton: { text: i18next.t('button.cancel') }
       })
-
-      if (!anwer.value) return
 
       const response = await client.query({
         query: gql`
