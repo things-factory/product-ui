@@ -135,7 +135,8 @@ class ProductList extends localize(i18next)(PageView) {
           icon: 'reorder',
           handlers: {
             click: (_columns, _data, _column, record, _rowIndex) => {
-              if (record.id) if (record.id) navigate(`product_set_list?productId=${record.id}`)
+              if (record.id)
+                if (record.id) navigate(`product_set_list?productId=${record.id}&productName=${record.name}`)
               // if (record.id) this._openProductOptionValue(record.id, record.name)
             }
           }
