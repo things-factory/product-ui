@@ -56,7 +56,8 @@ export class ProductSetOption extends localize(i18next)(LitElement) {
     return {
       productSetId: String,
       searchFields: Array,
-      config: Object
+      config: Object,
+      _productSetOptionData: Object
     }
   }
 
@@ -76,7 +77,9 @@ export class ProductSetOption extends localize(i18next)(LitElement) {
         <data-grist
           .mode=${isMobileDevice() ? 'LIST' : 'GRID'}
           .config=${this.config}
+          .data="${this._productSetOptionData}"
           .fetchHandler=${this.fetchHandler.bind(this)}
+          @field-change="${this._onProductOptionValueChanged.bind(this)}"
         ></data-grist>
       </div>
 
@@ -109,12 +112,20 @@ export class ProductSetOption extends localize(i18next)(LitElement) {
         { type: 'gutter', gutterName: 'sequence' },
         { type: 'gutter', gutterName: 'row-selector', multiple: true },
         {
+          type: 'string',
+          name: 'productOption',
+          header: i18next.t('field.productOption'),
+          record: { align: 'left', editable: false },
+          sortable: false,
+          width: 150
+        },
+        {
           type: 'object',
           name: 'productOptionValue',
-          header: i18next.t('field.productOption'),
+          header: i18next.t('field.productOptionValue'),
           record: {
             editable: true,
-            align: 'center',
+            align: 'left',
             options: {
               queryName: 'productOptionValues',
               select: [
@@ -130,7 +141,7 @@ export class ProductSetOption extends localize(i18next)(LitElement) {
               list: { fields: ['productOption'] }
             }
           },
-          width: 500
+          width: 300
         }
       ]
     }
@@ -161,6 +172,9 @@ export class ProductSetOption extends localize(i18next)(LitElement) {
               productOptionValue{
                 id
                 name
+                productOption{
+                  name
+                }
               }
               updatedAt
               updater{
@@ -173,17 +187,24 @@ export class ProductSetOption extends localize(i18next)(LitElement) {
         }
       `
     })
-
-    return {
+    this._productSetOptionData = {
       total: response.data.productSetOptions.total || 0,
-      records: response.data.productSetOptions.items || []
+      records:
+        response.data.productSetOptions.items.map(item => {
+          return { ...item, productOption: item.productOptionValue.productOption.name }
+        }) || []
     }
+  }
+
+  _onProductOptionValueChanged(e) {
+    this.dataGrist.dirtyData.records[e.detail.row].productOption = e.detail.after.productOption.name
   }
 
   async _saveProductSetOption() {
     let patches = this.dataGrist.exportPatchList({ flagName: 'cuFlag' })
     if (patches && patches.length) {
       patches = patches.map(productSetOption => {
+        delete productSetOption.productOption
         return {
           ...productSetOption,
           productOptionValue: { id: productSetOption.productOptionValue.id }
