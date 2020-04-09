@@ -114,7 +114,7 @@ export class ProductSetOption extends localize(i18next)(LitElement) {
         {
           type: 'string',
           name: 'productOption',
-          header: i18next.t('field.productOption'),
+          header: i18next.t('field.product_option'),
           record: { align: 'left', editable: false },
           sortable: false,
           width: 150
@@ -122,7 +122,7 @@ export class ProductSetOption extends localize(i18next)(LitElement) {
         {
           type: 'object',
           name: 'productOptionValue',
-          header: i18next.t('field.productOptionValue'),
+          header: i18next.t('field.product_option_value'),
           record: {
             editable: true,
             align: 'left',
