@@ -400,7 +400,7 @@ class ProductSetList extends localize(i18next)(PageView) {
       {
         backdrop: true,
         size: 'large',
-        title: i18next.t('title.product_options') + '(' + name + ')'
+        title: i18next.t('title.product_option') + '(' + name + ')'
       }
     )
   }
