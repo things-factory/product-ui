@@ -1,6 +1,6 @@
 {
   "name": "@things-factory/product-ui",
-  "version": "2.0.1",
+  "version": "2.4.0-beta.9",
   "main": "dist-server/index.js",
   "browser": "client/index.js",
   "things-factory": true,
@@ -32,6 +32,7 @@
     "@things-factory/grist-ui": "^2.0.0",
     "@things-factory/i18n-base": "^2.0.0",
     "@things-factory/import-ui": "^2.0.0",
+    "@things-factory/product-base": "^2.4.0-beta",
     "@things-factory/shell": "^2.0.0"
   },
   "devDependencies": {}

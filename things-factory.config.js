@@ -7,6 +7,14 @@ export default {
     {
       tagname: 'product-list',
       page: 'products'
+    },
+    {
+      tagname: 'product-option-list',
+      page: 'product_option_list'
+    },
+    {
+      tagname: 'product-set-list',
+      page: 'product_set_list'
     }
   ],
   bootstrap

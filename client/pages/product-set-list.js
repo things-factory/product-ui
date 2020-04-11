@@ -1,7 +1,7 @@
 import '@things-factory/form-ui'
 import '@things-factory/grist-ui'
 import { i18next, localize } from '@things-factory/i18n-base'
-import { openImportPopUp } from '@things-factory/import-ui'
+import { openPopup } from '@things-factory/layout-base'
 import {
   client,
   CustomAlert,
@@ -11,12 +11,16 @@ import {
   ScrollbarStyles,
   navigate
 } from '@things-factory/shell'
+import { getCodeByName } from '@things-factory/code-base'
 import gql from 'graphql-tag'
 import { css, html } from 'lit-element'
+import './product-set-option'
 
-class ProductList extends localize(i18next)(PageView) {
+class ProductSetList extends localize(i18next)(PageView) {
   static get properties() {
     return {
+      _productId: String,
+      _productName: String,
       searchFields: Array,
       config: Object
     }
@@ -57,33 +61,21 @@ class ProductList extends localize(i18next)(PageView) {
 
   get context() {
     return {
-      title: i18next.t('title.product'),
+      title: i18next.t('title.product_set') + this._productName,
       actions: [
         {
           title: i18next.t('button.save'),
-          action: () => this._saveProducts(this.dataGrist.exportPatchList({ flagName: 'cuFlag ' }))
+          action: () => this._saveProductSets(this.dataGrist.exportPatchList({ flagName: 'cuFlag ' }))
         },
         {
           title: i18next.t('button.delete'),
-          action: this._deleteProducts.bind(this)
+          action: this._deleteProductSets.bind(this)
+        },
+        {
+          title: i18next.t('button.back'),
+          action: this._onBackButtonClick.bind(this)
         }
-      ],
-      exportable: {
-        name: i18next.t('title.product'),
-        data: this._exportableData.bind(this)
-      },
-      importable: {
-        handler: records => {
-          const config = {
-            rows: this.config.rows,
-            columns: [...this.config.columns.filter(column => column.imex !== undefined)]
-          }
-          openImportPopUp(records, config, async patches => {
-            await this._saveProducts(patches)
-            history.back()
-          })
-        }
-      }
+      ]
     }
   }
 
@@ -95,7 +87,11 @@ class ProductList extends localize(i18next)(PageView) {
     return this.shadowRoot.querySelector('data-grist')
   }
 
-  pageInitialized() {
+  async pageInitialized() {
+    const productSetStatus = await getCodeByName('PRODUCT_SET_STATUS')
+    const productType = await getCodeByName('PRODUCT_TYPES')
+    const packingType = await getCodeByName('PACKING_TYPES')
+
     this.searchFields = [
       {
         label: i18next.t('field.name'),
@@ -103,13 +99,6 @@ class ProductList extends localize(i18next)(PageView) {
         props: {
           searchOper: 'i_like'
         }
-      },
-      {
-        label: i18next.t('field.product_ref'),
-        name: 'productRef',
-        type: 'object',
-        queryName: 'products',
-        field: 'name'
       },
       {
         label: i18next.t('field.type'),
@@ -122,7 +111,6 @@ class ProductList extends localize(i18next)(PageView) {
 
     this.config = {
       rows: {
-        handlers: { click: this._setProductRefCondition.bind(this) },
         selectable: { multiple: true }
       },
       columns: [
@@ -135,9 +123,7 @@ class ProductList extends localize(i18next)(PageView) {
           icon: 'reorder',
           handlers: {
             click: (_columns, _data, _column, record, _rowIndex) => {
-              if (record.id)
-                if (record.id) navigate(`product_set_list?productId=${record.id}&productName=${record.name}`)
-              // if (record.id) this._openProductOptionValue(record.id, record.name)
+              if (record.id) this._openProductSetOption(record.id, record.name)
             }
           }
         },
@@ -145,55 +131,75 @@ class ProductList extends localize(i18next)(PageView) {
           type: 'string',
           name: 'name',
           record: { editable: true },
-          imex: { header: 'Name', key: 'name', width: 50, type: 'string' },
-          header: i18next.t('field.name'),
+          header: i18next.t('field.product_code'),
           sortable: true,
-          width: 180
-        },
-        {
-          type: 'object',
-          name: 'productRef',
-          record: {
-            editable: true,
-            options: { queryName: 'products' }
-          },
-          imex: { header: 'Product Ref', key: 'productRef', width: 50, type: 'string' },
-          header: i18next.t('field.product_ref'),
-          sortable: true,
-          width: 230
+          width: 100
         },
         {
           type: 'string',
           name: 'description',
           record: { editable: true },
-          imex: { header: 'Description', key: 'description', width: 50, type: 'string' },
           header: i18next.t('field.description'),
           sortable: true,
-          width: 300
+          width: 200
         },
         {
-          type: 'string',
+          type: 'select',
           name: 'type',
-          record: { align: 'center', editable: true },
-          imex: { header: 'Type', key: 'type', width: 50, type: 'string' },
           header: i18next.t('field.type'),
+          record: {
+            editable: true,
+            align: 'center',
+            options: ['', ...Object.keys(productType).map(key => productType[key].name)]
+          },
           sortable: true,
-          width: 80
+          width: 120
+        },
+        {
+          type: 'select',
+          name: 'packingType',
+          header: i18next.t('field.packingType'),
+          record: {
+            editable: true,
+            align: 'center',
+            options: ['', ...Object.keys(packingType).map(key => packingType[key].name)]
+          },
+          width: 120
+        },
+        {
+          type: 'select',
+          name: 'status',
+          header: i18next.t('field.status'),
+          record: {
+            editable: true,
+            align: 'center',
+            options: ['', ...Object.keys(productSetStatus).map(key => productSetStatus[key].name)]
+          },
+          width: 100
+        },
+        {
+          type: 'object',
+          name: 'productSupersede',
+          record: {
+            editable: true,
+            options: { queryName: 'products' }
+          },
+          header: i18next.t('field.product_ref'),
+          sortable: true,
+          width: 150
         },
         {
           type: 'integer',
           name: 'expirationPeriod',
           record: { align: 'center', editable: true },
-          imex: { header: 'Expiration Period', key: 'expirationPeriod', width: 50, type: 'integer' },
           header: i18next.t('field.expiration_period'),
           sortable: true,
-          width: 80
+          width: 150
         },
         {
           type: 'string',
           name: 'weightUnit',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Weight Unit', key: 'weightUnit', width: 50, type: 'string' },
           header: i18next.t('field.weight_unit'),
           width: 80
         },
@@ -201,7 +207,6 @@ class ProductList extends localize(i18next)(PageView) {
           type: 'float',
           name: 'weight',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Weight', key: 'weight', width: 50, type: 'float' },
           header: i18next.t('field.weight'),
           width: 80
         },
@@ -209,7 +214,6 @@ class ProductList extends localize(i18next)(PageView) {
           type: 'float',
           name: 'weightRatio',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Weight Ratio', key: 'weightRatio', width: 50, type: 'float' },
           header: i18next.t('field.weight_ratio'),
           width: 80
         },
@@ -217,7 +221,6 @@ class ProductList extends localize(i18next)(PageView) {
           type: 'string',
           name: 'lengthUnit',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Length Unit', key: 'lengthUnit', width: 50, type: 'string' },
           header: i18next.t('field.length_unit'),
           width: 80
         },
@@ -225,7 +228,6 @@ class ProductList extends localize(i18next)(PageView) {
           type: 'float',
           name: 'width',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Width', key: 'width', width: 50, type: 'float' },
           header: i18next.t('field.width'),
           width: 80
         },
@@ -233,7 +235,6 @@ class ProductList extends localize(i18next)(PageView) {
           type: 'float',
           name: 'depth',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Depth', key: 'depth', width: 50, type: 'float' },
           header: i18next.t('field.depth'),
           width: 80
         },
@@ -241,7 +242,6 @@ class ProductList extends localize(i18next)(PageView) {
           type: 'float',
           name: 'height',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Height', key: 'height', width: 50, type: 'float' },
           header: i18next.t('field.height'),
           width: 80
         },
@@ -249,7 +249,6 @@ class ProductList extends localize(i18next)(PageView) {
           type: 'string',
           name: 'auxUnit1',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Aux Unit 1', key: 'auxUnit1', width: 50, type: 'string' },
           header: `${i18next.t('field.aux_unit')} 1`,
           width: 80
         },
@@ -257,7 +256,6 @@ class ProductList extends localize(i18next)(PageView) {
           type: 'string',
           name: 'auxValue1',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Aux Value 1', key: 'auxValue1', width: 50, type: 'string' },
           header: `${i18next.t('field.aux_value')} 1`,
           width: 80
         },
@@ -265,7 +263,6 @@ class ProductList extends localize(i18next)(PageView) {
           type: 'string',
           name: 'auxUnit2',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Aux Unit 2', key: 'auxUnit2', width: 50, type: 'string' },
           header: `${i18next.t('field.aux_unit')} 2`,
           width: 80
         },
@@ -273,7 +270,6 @@ class ProductList extends localize(i18next)(PageView) {
           type: 'string',
           name: 'auxValue2',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Aux Value 2', key: 'auxValue2', width: 50, type: 'string' },
           header: `${i18next.t('field.aux_value')} 2`,
           width: 80
         },
@@ -281,7 +277,6 @@ class ProductList extends localize(i18next)(PageView) {
           type: 'string',
           name: 'auxUnit3',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Aux Unit 3', key: 'auxUnit3', width: 50, type: 'string' },
           header: `${i18next.t('field.aux_unit')} 3`,
           width: 80
         },
@@ -289,7 +284,6 @@ class ProductList extends localize(i18next)(PageView) {
           type: 'string',
           name: 'auxValue3',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Aux Value 3', key: 'auxValue3', width: 50, type: 'string' },
           header: `${i18next.t('field.aux_value')} 3`,
           width: 80
         },
@@ -314,16 +308,30 @@ class ProductList extends localize(i18next)(PageView) {
 
   pageUpdated(changes, lifecycle) {
     if (this.active) {
+      this._productId = lifecycle.params.productId || this._productId || ''
+      this._productName = '(' + lifecycle.params.productName + ')' || this._productName || ''
       this.dataGrist.fetch()
     }
+    // if (this.active) {
+    //   this.dataGrist.fetch()
+    // }
   }
 
   async fetchHandler({ page, limit, sorters = [{ name: 'name' }] }) {
+    let filters = []
+    if (this._productId) {
+      filters.push({
+        name: 'product',
+        operator: 'eq',
+        value: this._productId
+      })
+    }
+
     const response = await client.query({
       query: gql`
         query {
-          products(${gqlBuilder.buildArgs({
-            filters: await this.searchForm.getQueryFilters(),
+          productSets(${gqlBuilder.buildArgs({
+            filters: [...filters, ...this.searchForm.queryFilters],
             pagination: { page, limit },
             sortings: sorters
           })}) {
@@ -331,10 +339,12 @@ class ProductList extends localize(i18next)(PageView) {
               id
               name
               description
-              productRef {
+              productSupersede {
                 name
                 description
               }
+              packingType
+              status
               type
               expirationPeriod
               weightUnit
@@ -364,25 +374,38 @@ class ProductList extends localize(i18next)(PageView) {
 
     if (!response.errors) {
       return {
-        total: response.data.products.total || 0,
-        records: response.data.products.items || []
+        total: response.data.productSets.total || 0,
+        records: response.data.productSets.items || []
       }
     }
   }
 
-  _setProductRefCondition(_columns, _data, _column, record, _rowIndex) {
-    this.config.columns.map(column => {
-      if (column.name === 'productRef') {
-        if (record && record.id) {
-          column.record.options.basicArgs = { filters: [{ name: 'id', operator: 'noteq', value: record.id }] }
-        } else {
-          delete column.record.options.basicArgs
-        }
+  // _setProductRefCondition(_columns, _data, _column, record, _rowIndex) {
+  //   this.config.columns.map(column => {
+  //     if (column.name === 'productRef') {
+  //       if (record && record.id) {
+  //         column.record.options.basicArgs = { filters: [{ name: 'id', operator: 'noteq', value: record.id }] }
+  //       } else {
+  //         delete column.record.options.basicArgs
+  //       }
+  //     }
+  //   })
+  // }
+
+  _openProductSetOption(id, name) {
+    openPopup(
+      html`
+        <product-set-option .productSetId="${id}"></product-set-option>
+      `,
+      {
+        backdrop: true,
+        size: 'large',
+        title: i18next.t('title.product_option') + '(' + name + ')'
       }
-    })
+    )
   }
 
-  async _saveProducts(patches) {
+  async _saveProductSets(patches) {
     if (patches && patches.length) {
       patches = patches.map(patch => {
         patch.weight = parseFloat(patch.weight)
@@ -397,8 +420,9 @@ class ProductList extends localize(i18next)(PageView) {
       const response = await client.query({
         query: gql`
             mutation {
-              updateMultipleProduct(${gqlBuilder.buildArgs({
-                patches
+              updateMultipleProductSet(${gqlBuilder.buildArgs({
+                patches,
+                product: { id: this._productId }
               })}) {
                 name
               }
@@ -418,7 +442,7 @@ class ProductList extends localize(i18next)(PageView) {
     }
   }
 
-  async _deleteProducts() {
+  async _deleteProductSets() {
     const ids = this.dataGrist.selected.map(record => record.id)
     if (ids && ids.length) {
       const anwer = await CustomAlert({
@@ -429,12 +453,10 @@ class ProductList extends localize(i18next)(PageView) {
         cancelButton: { text: i18next.t('button.cancel') }
       })
 
-      if (!anwer.value) return
-
       const response = await client.query({
         query: gql`
           mutation {
-            deleteProducts(${gqlBuilder.buildArgs({ ids })})
+            deleteProductSets(${gqlBuilder.buildArgs({ ids })})
           }
         `
       })
@@ -451,35 +473,8 @@ class ProductList extends localize(i18next)(PageView) {
     }
   }
 
-  _exportableData() {
-    let records = []
-    if (this.dataGrist.selected && this.dataGrist.selected.length > 0) {
-      records = this.dataGrist.selected
-    } else {
-      records = this.dataGrist.data.records
-    }
-
-    var headerSetting = this.dataGrist._config.columns
-      .filter(column => column.type !== 'gutter' && column.record !== undefined && column.imex !== undefined)
-      .map(column => {
-        return column.imex
-      })
-
-    var data = records.map(item => {
-      return {
-        id: item.id,
-        ...this.config.columns
-          .filter(column => column.type !== 'gutter' && column.record !== undefined && column.imex !== undefined)
-          .reduce((record, column) => {
-            record[column.imex.key] = column.imex.key
-              .split('.')
-              .reduce((obj, key) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined), item)
-            return record
-          }, {})
-      }
-    })
-
-    return { header: headerSetting, data: data }
+  async _onBackButtonClick(e) {
+    navigate(`products`)
   }
 
   showToast(message) {
@@ -487,4 +482,4 @@ class ProductList extends localize(i18next)(PageView) {
   }
 }
 
-window.customElements.define('product-list', ProductList)
+window.customElements.define('product-set-list', ProductSetList)
