@@ -1,6 +1,7 @@
 import '@things-factory/form-ui'
 import '@things-factory/grist-ui'
 import { i18next, localize } from '@things-factory/i18n-base'
+import { getCodeByName } from '@things-factory/code-base'
 import { openImportPopUp } from '@things-factory/import-ui'
 import {
   client,
@@ -9,7 +10,7 @@ import {
   isMobileDevice,
   PageView,
   ScrollbarStyles,
-  navigate,
+  navigate
 } from '@things-factory/shell'
 import gql from 'graphql-tag'
 import { css, html } from 'lit-element'
@@ -18,7 +19,7 @@ class ProductList extends localize(i18next)(PageView) {
   static get properties() {
     return {
       searchFields: Array,
-      config: Object,
+      config: Object
     }
   }
 
@@ -38,13 +39,13 @@ class ProductList extends localize(i18next)(PageView) {
           overflow-y: auto;
           flex: 1;
         }
-      `,
+      `
     ]
   }
 
   render() {
     return html`
-      <search-form .fields=${this.searchFields} @submit=${(e) => this.dataGrist.fetch()}></search-form>
+      <search-form .fields=${this.searchFields} @submit=${e => this.dataGrist.fetch()}></search-form>
 
       <data-grist
         .mode=${isMobileDevice() ? 'LIST' : 'GRID'}
@@ -61,29 +62,29 @@ class ProductList extends localize(i18next)(PageView) {
       actions: [
         {
           title: i18next.t('button.save'),
-          action: () => this._saveProducts(this.dataGrist.exportPatchList({ flagName: 'cuFlag ' })),
+          action: () => this._saveProducts(this.dataGrist.exportPatchList({ flagName: 'cuFlag ' }))
         },
         {
           title: i18next.t('button.delete'),
-          action: this._deleteProducts.bind(this),
-        },
+          action: this._deleteProducts.bind(this)
+        }
       ],
       exportable: {
         name: i18next.t('title.product'),
-        data: this._exportableData.bind(this),
+        data: this._exportableData.bind(this)
       },
       importable: {
-        handler: (records) => {
+        handler: records => {
           const config = {
             rows: this.config.rows,
-            columns: [...this.config.columns.filter((column) => column.imex !== undefined)],
+            columns: [...this.config.columns.filter(column => column.imex !== undefined)]
           }
-          openImportPopUp(records, config, async (patches) => {
+          openImportPopUp(records, config, async patches => {
             await this._saveProducts(patches)
             history.back()
           })
-        },
-      },
+        }
+      }
     }
   }
 
@@ -95,35 +96,38 @@ class ProductList extends localize(i18next)(PageView) {
     return this.shadowRoot.querySelector('data-grist')
   }
 
-  pageInitialized() {
+  async pageInitialized() {
+    const productType = await getCodeByName('PRODUCT_TYPES')
+    const packingType = await getCodeByName('PACKING_TYPES')
+
     this.searchFields = [
       {
         label: i18next.t('field.name'),
         name: 'name',
         props: {
-          searchOper: 'i_like',
-        },
+          searchOper: 'i_like'
+        }
       },
       {
         label: i18next.t('field.product_ref'),
         name: 'productRef',
         type: 'object',
         queryName: 'products',
-        field: 'name',
+        field: 'name'
       },
       {
         label: i18next.t('field.type'),
         name: 'type',
         props: {
-          searchOper: 'i_like',
-        },
-      },
+          searchOper: 'i_like'
+        }
+      }
     ]
 
     this.config = {
       rows: {
         handlers: { click: this._setProductRefCondition.bind(this) },
-        selectable: { multiple: true },
+        selectable: { multiple: true }
       },
       columns: [
         { type: 'gutter', gutterName: 'dirty' },
@@ -136,7 +140,7 @@ class ProductList extends localize(i18next)(PageView) {
           imex: { header: 'sku', key: 'sku', width: 50, type: 'string' },
           header: i18next.t('field.sku'),
           sortable: true,
-          width: 180,
+          width: 180
         },
         {
           type: 'string',
@@ -145,39 +149,57 @@ class ProductList extends localize(i18next)(PageView) {
           imex: { header: 'Name', key: 'name', width: 50, type: 'string' },
           header: i18next.t('field.name'),
           sortable: true,
-          width: 180,
+          width: 180
         },
         {
           type: 'object',
           name: 'productRef',
           record: {
             editable: true,
-            options: { queryName: 'products' },
+            options: {
+              queryName: 'products',
+              select: [
+                { name: 'id', hidden: true },
+                { name: 'sku', header: i18next.t('field.sku'), width: 200 },
+                { name: 'name', header: i18next.t('field.name'), width: 200 },
+                { name: 'description', header: i18next.t('field.description'), width: 500 }
+              ]
+            }
           },
           imex: { header: 'Product Ref', key: 'productRef', width: 50, type: 'string' },
           header: i18next.t('field.product_ref'),
+
           sortable: true,
-          width: 230,
+          width: 230
         },
         {
           type: 'object',
           name: 'parentProductRef',
           record: {
             editable: true,
-            options: { queryName: 'products' },
+            options: {
+              queryName: 'products',
+              select: [
+                { name: 'id', hidden: true },
+                { name: 'sku', header: i18next.t('field.sku'), width: 200 },
+                { name: 'name', header: i18next.t('field.name'), width: 200 },
+                { name: 'description', header: i18next.t('field.description'), width: 300 },
+                { name: 'packingType', header: i18next.t('field.packingType'), width: 150 }
+              ]
+            }
           },
           imex: { header: 'Parent Product Ref', key: 'parentProductRef', width: 50, type: 'string' },
           header: i18next.t('field.parent_product_ref'),
           sortable: true,
-          width: 230,
+          width: 230
         },
         {
           type: 'float',
           name: 'parentProductQty',
           record: { editable: true, align: 'center' },
           imex: { header: 'Parent Product Qty', key: 'parentProductQty', width: 50, type: 'float' },
-          header: i18next.t('field.parentProductQty'),
-          width: 80,
+          header: i18next.t('field.parent_product_qty'),
+          width: 80
         },
         {
           type: 'string',
@@ -186,16 +208,30 @@ class ProductList extends localize(i18next)(PageView) {
           imex: { header: 'Description', key: 'description', width: 50, type: 'string' },
           header: i18next.t('field.description'),
           sortable: true,
-          width: 300,
+          width: 300
         },
         {
-          type: 'string',
+          type: 'select',
           name: 'type',
-          record: { align: 'center', editable: true },
-          imex: { header: 'Type', key: 'type', width: 50, type: 'string' },
           header: i18next.t('field.type'),
+          record: {
+            editable: true,
+            align: 'center',
+            options: ['', ...Object.keys(productType).map(key => productType[key].name)]
+          },
           sortable: true,
-          width: 80,
+          width: 120
+        },
+        {
+          type: 'select',
+          name: 'packingType',
+          header: i18next.t('field.packingType'),
+          record: {
+            editable: true,
+            align: 'center',
+            options: ['', ...Object.keys(packingType).map(key => packingType[key].name)]
+          },
+          width: 120
         },
         {
           type: 'integer',
@@ -204,7 +240,7 @@ class ProductList extends localize(i18next)(PageView) {
           imex: { header: 'Expiration Period', key: 'expirationPeriod', width: 50, type: 'integer' },
           header: i18next.t('field.expiration_period'),
           sortable: true,
-          width: 80,
+          width: 80
         },
         {
           type: 'string',
@@ -212,7 +248,7 @@ class ProductList extends localize(i18next)(PageView) {
           record: { editable: true, align: 'center' },
           imex: { header: 'Weight Unit', key: 'weightUnit', width: 50, type: 'string' },
           header: i18next.t('field.weight_unit'),
-          width: 80,
+          width: 80
         },
         {
           type: 'float',
@@ -220,7 +256,7 @@ class ProductList extends localize(i18next)(PageView) {
           record: { editable: true, align: 'center' },
           imex: { header: 'Weight', key: 'weight', width: 50, type: 'float' },
           header: i18next.t('field.weight'),
-          width: 80,
+          width: 80
         },
         {
           type: 'float',
@@ -228,7 +264,7 @@ class ProductList extends localize(i18next)(PageView) {
           record: { editable: true, align: 'center' },
           imex: { header: 'Density', key: 'density', width: 50, type: 'float' },
           header: i18next.t('field.density'),
-          width: 80,
+          width: 80
         },
         {
           type: 'string',
@@ -236,7 +272,7 @@ class ProductList extends localize(i18next)(PageView) {
           record: { editable: true, align: 'center' },
           imex: { header: 'Length Unit', key: 'lengthUnit', width: 50, type: 'string' },
           header: i18next.t('field.length_unit'),
-          width: 80,
+          width: 80
         },
         {
           type: 'float',
@@ -244,7 +280,7 @@ class ProductList extends localize(i18next)(PageView) {
           record: { editable: true, align: 'center' },
           imex: { header: 'Width', key: 'width', width: 50, type: 'float' },
           header: i18next.t('field.width'),
-          width: 80,
+          width: 80
         },
         {
           type: 'float',
@@ -252,7 +288,7 @@ class ProductList extends localize(i18next)(PageView) {
           record: { editable: true, align: 'center' },
           imex: { header: 'Depth', key: 'depth', width: 50, type: 'float' },
           header: i18next.t('field.depth'),
-          width: 80,
+          width: 80
         },
         {
           type: 'float',
@@ -260,7 +296,7 @@ class ProductList extends localize(i18next)(PageView) {
           record: { editable: true, align: 'center' },
           imex: { header: 'Height', key: 'height', width: 50, type: 'float' },
           header: i18next.t('field.height'),
-          width: 80,
+          width: 80
         },
         {
           type: 'string',
@@ -268,7 +304,7 @@ class ProductList extends localize(i18next)(PageView) {
           record: { editable: true, align: 'center' },
           imex: { header: 'Aux Unit 1', key: 'auxUnit1', width: 50, type: 'string' },
           header: `${i18next.t('field.aux_unit')} 1`,
-          width: 80,
+          width: 80
         },
         {
           type: 'string',
@@ -276,7 +312,7 @@ class ProductList extends localize(i18next)(PageView) {
           record: { editable: true, align: 'center' },
           imex: { header: 'Aux Value 1', key: 'auxValue1', width: 50, type: 'string' },
           header: `${i18next.t('field.aux_value')} 1`,
-          width: 80,
+          width: 80
         },
         {
           type: 'string',
@@ -284,7 +320,7 @@ class ProductList extends localize(i18next)(PageView) {
           record: { editable: true, align: 'center' },
           imex: { header: 'Aux Unit 2', key: 'auxUnit2', width: 50, type: 'string' },
           header: `${i18next.t('field.aux_unit')} 2`,
-          width: 80,
+          width: 80
         },
         {
           type: 'string',
@@ -292,7 +328,7 @@ class ProductList extends localize(i18next)(PageView) {
           record: { editable: true, align: 'center' },
           imex: { header: 'Aux Value 2', key: 'auxValue2', width: 50, type: 'string' },
           header: `${i18next.t('field.aux_value')} 2`,
-          width: 80,
+          width: 80
         },
         {
           type: 'string',
@@ -300,7 +336,7 @@ class ProductList extends localize(i18next)(PageView) {
           record: { editable: true, align: 'center' },
           imex: { header: 'Aux Unit 3', key: 'auxUnit3', width: 50, type: 'string' },
           header: `${i18next.t('field.aux_unit')} 3`,
-          width: 80,
+          width: 80
         },
         {
           type: 'string',
@@ -308,14 +344,14 @@ class ProductList extends localize(i18next)(PageView) {
           record: { editable: true, align: 'center' },
           imex: { header: 'Aux Value 3', key: 'auxValue3', width: 50, type: 'string' },
           header: `${i18next.t('field.aux_value')} 3`,
-          width: 80,
+          width: 80
         },
         {
           type: 'object',
           name: 'updater',
           record: { align: 'center', editable: false },
           header: i18next.t('field.updater'),
-          width: 250,
+          width: 250
         },
         {
           type: 'datetime',
@@ -323,9 +359,9 @@ class ProductList extends localize(i18next)(PageView) {
           record: { align: 'center', editable: false },
           header: i18next.t('field.updated_at'),
           sortable: true,
-          width: 180,
-        },
-      ],
+          width: 180
+        }
+      ]
     }
   }
 
@@ -342,7 +378,7 @@ class ProductList extends localize(i18next)(PageView) {
           products(${gqlBuilder.buildArgs({
             filters: await this.searchForm.getQueryFilters(),
             pagination: { page, limit },
-            sortings: sorters,
+            sortings: sorters
           })}) {
             items {
               sku
@@ -358,6 +394,7 @@ class ProductList extends localize(i18next)(PageView) {
                 description
               }
               parentProductQty
+              packingType
               type
               expirationPeriod
               weightUnit
@@ -382,20 +419,20 @@ class ProductList extends localize(i18next)(PageView) {
             total
           }
         }
-        `,
+        `
     })
 
     if (!response.errors) {
       return {
         total: response.data.products.total || 0,
-        records: response.data.products.items || [],
+        records: response.data.products.items || []
       }
     }
   }
 
   _setProductRefCondition(_columns, _data, _column, record, _rowIndex) {
-    this.config.columns.map((column) => {
-      if (column.name === 'productRef') {
+    this.config.columns.map(column => {
+      if (column.name === 'productRef' || column.name === 'parentProductRef') {
         if (record && record.id) {
           column.record.options.basicArgs = { filters: [{ name: 'id', operator: 'noteq', value: record.id }] }
         } else {
@@ -407,7 +444,7 @@ class ProductList extends localize(i18next)(PageView) {
 
   async _saveProducts(patches) {
     if (patches && patches.length) {
-      patches = patches.map((patch) => {
+      patches = patches.map(patch => {
         patch.weight = parseFloat(patch.weight)
         patch.density = parseFloat(patch.density)
         patch.width = parseFloat(patch.width)
@@ -415,6 +452,12 @@ class ProductList extends localize(i18next)(PageView) {
         patch.height = parseFloat(patch.height)
         patch.expirationPeriod = parseFloat(patch.expirationPeriod)
         patch.parentProductQty = parseFloat(patch.parentProductQty)
+
+        if (patch.parentProductRef) {
+          delete patch.parentProductRef.sku
+          delete patch.parentProductRef.packingType
+        }
+
         return patch
       })
 
@@ -422,12 +465,12 @@ class ProductList extends localize(i18next)(PageView) {
         query: gql`
             mutation {
               updateMultipleProduct(${gqlBuilder.buildArgs({
-                patches,
+                patches
               })}) {
                 name
               }
             }
-          `,
+          `
       })
 
       if (!response.errors) {
@@ -437,20 +480,20 @@ class ProductList extends localize(i18next)(PageView) {
     } else {
       CustomAlert({
         title: i18next.t('text.nothing_changed'),
-        text: i18next.t('text.there_is_nothing_to_save'),
+        text: i18next.t('text.there_is_nothing_to_save')
       })
     }
   }
 
   async _deleteProducts() {
-    const ids = this.dataGrist.selected.map((record) => record.id)
+    const ids = this.dataGrist.selected.map(record => record.id)
     if (ids && ids.length) {
       const anwer = await CustomAlert({
         type: 'warning',
         title: i18next.t('button.delete'),
         text: i18next.t('text.are_you_sure'),
         confirmButton: { text: i18next.t('button.delete') },
-        cancelButton: { text: i18next.t('button.cancel') },
+        cancelButton: { text: i18next.t('button.cancel') }
       })
 
       if (!anwer.value) return
@@ -460,7 +503,7 @@ class ProductList extends localize(i18next)(PageView) {
           mutation {
             deleteProducts(${gqlBuilder.buildArgs({ ids })})
           }
-        `,
+        `
       })
 
       if (!response.errors) {
@@ -470,7 +513,7 @@ class ProductList extends localize(i18next)(PageView) {
     } else {
       CustomAlert({
         title: i18next.t('text.nothing_selected'),
-        text: i18next.t('text.there_is_nothing_to_delete'),
+        text: i18next.t('text.there_is_nothing_to_delete')
       })
     }
   }
@@ -484,22 +527,22 @@ class ProductList extends localize(i18next)(PageView) {
     }
 
     var headerSetting = this.dataGrist._config.columns
-      .filter((column) => column.type !== 'gutter' && column.record !== undefined && column.imex !== undefined)
-      .map((column) => {
+      .filter(column => column.type !== 'gutter' && column.record !== undefined && column.imex !== undefined)
+      .map(column => {
         return column.imex
       })
 
-    var data = records.map((item) => {
+    var data = records.map(item => {
       return {
         id: item.id,
         ...this.config.columns
-          .filter((column) => column.type !== 'gutter' && column.record !== undefined && column.imex !== undefined)
+          .filter(column => column.type !== 'gutter' && column.record !== undefined && column.imex !== undefined)
           .reduce((record, column) => {
             record[column.imex.key] = column.imex.key
               .split('.')
               .reduce((obj, key) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined), item)
             return record
-          }, {}),
+          }, {})
       }
     })
 
