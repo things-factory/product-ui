@@ -14,6 +14,7 @@
   "field.parent_product_ref": "parent product ref",
   "field.parent_product_qty": "parent product qty",
   "field.product_ref": "product ref",
+  "field.sku": "SKU",
   "field.type": "type",
   "field.updated_at": "updated at",
   "field.updater": "updater",
