@@ -174,7 +174,7 @@ class ProductList extends localize(i18next)(PageView) {
         },
         {
           type: 'object',
-          name: 'parentProductRef',
+          name: 'childProductRef',
           record: {
             editable: true,
             options: {
@@ -188,17 +188,17 @@ class ProductList extends localize(i18next)(PageView) {
               ]
             }
           },
-          imex: { header: 'Parent Product Ref', key: 'parentProductRef', width: 50, type: 'string' },
-          header: i18next.t('field.parent_product_ref'),
+          imex: { header: 'Child Product Ref', key: 'childProductRef', width: 50, type: 'string' },
+          header: i18next.t('field.child_product_ref'),
           sortable: true,
           width: 230
         },
         {
           type: 'float',
-          name: 'parentProductQty',
+          name: 'childProductQty',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Parent Product Qty', key: 'parentProductQty', width: 50, type: 'float' },
-          header: i18next.t('field.parent_product_qty'),
+          imex: { header: 'Child Product Qty', key: 'childProductQty', width: 50, type: 'float' },
+          header: i18next.t('field.child_product_qty'),
           width: 80
         },
         {
@@ -389,11 +389,11 @@ class ProductList extends localize(i18next)(PageView) {
                 name
                 description
               }
-              parentProductRef{
+              childProductRef{
                 name
                 description
               }
-              parentProductQty
+              childProductQty
               packingType
               type
               expirationPeriod
@@ -432,7 +432,7 @@ class ProductList extends localize(i18next)(PageView) {
 
   _setProductRefCondition(_columns, _data, _column, record, _rowIndex) {
     this.config.columns.map(column => {
-      if (column.name === 'productRef' || column.name === 'parentProductRef') {
+      if (column.name === 'productRef' || column.name === 'childProductRef') {
         if (record && record.id) {
           column.record.options.basicArgs = { filters: [{ name: 'id', operator: 'noteq', value: record.id }] }
         } else {
@@ -451,11 +451,11 @@ class ProductList extends localize(i18next)(PageView) {
         patch.depth = parseFloat(patch.depth)
         patch.height = parseFloat(patch.height)
         patch.expirationPeriod = parseFloat(patch.expirationPeriod)
-        patch.parentProductQty = parseFloat(patch.parentProductQty)
+        patch.childProductQty = parseFloat(patch.childProductQty)
 
-        if (patch.parentProductRef) {
-          delete patch.parentProductRef.sku
-          delete patch.parentProductRef.packingType
+        if (patch.childProductRef) {
+          delete patch.childProductRef.sku
+          delete patch.childProductRef.packingType
         }
 
         return patch
