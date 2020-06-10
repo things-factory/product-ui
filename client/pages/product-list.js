@@ -391,6 +391,17 @@ class ProductList extends localize(i18next)(PageView) {
         patch.depth = parseFloat(patch.depth)
         patch.height = parseFloat(patch.height)
         patch.expirationPeriod = parseFloat(patch.expirationPeriod)
+        patch.childProductQty = parseFloat(patch.childProductQty)
+
+        if (patch.childProductRef) {
+          delete patch.childProductRef.sku
+          delete patch.childProductRef.packingType
+        }
+
+        if (patch.productRef) {
+          delete patch.productRef.sku
+        }
+
         return patch
       })
 
