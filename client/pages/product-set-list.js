@@ -212,9 +212,9 @@ class ProductSetList extends localize(i18next)(PageView) {
         },
         {
           type: 'float',
-          name: 'weightRatio',
+          name: 'density',
           record: { editable: true, align: 'center' },
-          header: i18next.t('field.weight_ratio'),
+          header: i18next.t('field.density'),
           width: 80
         },
         {
@@ -349,7 +349,7 @@ class ProductSetList extends localize(i18next)(PageView) {
               expirationPeriod
               weightUnit
               weight
-              weightRatio
+              density
               lengthUnit
               width
               depth
@@ -393,23 +393,18 @@ class ProductSetList extends localize(i18next)(PageView) {
   // }
 
   _openProductSetOption(id, name) {
-    openPopup(
-      html`
-        <product-set-option .productSetId="${id}"></product-set-option>
-      `,
-      {
-        backdrop: true,
-        size: 'large',
-        title: i18next.t('title.product_option') + '(' + name + ')'
-      }
-    )
+    openPopup(html` <product-set-option .productSetId="${id}"></product-set-option> `, {
+      backdrop: true,
+      size: 'large',
+      title: i18next.t('title.product_option') + '(' + name + ')'
+    })
   }
 
   async _saveProductSets(patches) {
     if (patches && patches.length) {
       patches = patches.map(patch => {
         patch.weight = parseFloat(patch.weight)
-        patch.weightRatio = parseFloat(patch.weightRatio)
+        patch.density = parseFloat(patch.density)
         patch.width = parseFloat(patch.width)
         patch.depth = parseFloat(patch.depth)
         patch.height = parseFloat(patch.height)

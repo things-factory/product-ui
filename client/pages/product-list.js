@@ -1,6 +1,7 @@
 import '@things-factory/form-ui'
 import '@things-factory/grist-ui'
 import { i18next, localize } from '@things-factory/i18n-base'
+import { getCodeByName } from '@things-factory/code-base'
 import { openImportPopUp } from '@things-factory/import-ui'
 import {
   client,
@@ -95,7 +96,10 @@ class ProductList extends localize(i18next)(PageView) {
     return this.shadowRoot.querySelector('data-grist')
   }
 
-  pageInitialized() {
+  async pageInitialized() {
+    const productType = await getCodeByName('PRODUCT_TYPES')
+    const packingType = await getCodeByName('PACKING_TYPES')
+
     this.searchFields = [
       {
         label: i18next.t('field.name'),
@@ -130,16 +134,13 @@ class ProductList extends localize(i18next)(PageView) {
         { type: 'gutter', gutterName: 'sequence' },
         { type: 'gutter', gutterName: 'row-selector', multiple: true },
         {
-          type: 'gutter',
-          gutterName: 'button',
-          icon: 'reorder',
-          handlers: {
-            click: (_columns, _data, _column, record, _rowIndex) => {
-              if (record.id)
-                if (record.id) navigate(`product_set_list?productId=${record.id}&productName=${record.name}`)
-              // if (record.id) this._openProductOptionValue(record.id, record.name)
-            }
-          }
+          type: 'string',
+          name: 'sku',
+          record: { editable: true },
+          imex: { header: 'sku', key: 'sku', width: 50, type: 'string' },
+          header: i18next.t('field.sku'),
+          sortable: true,
+          width: 180
         },
         {
           type: 'string',
@@ -155,12 +156,50 @@ class ProductList extends localize(i18next)(PageView) {
           name: 'productRef',
           record: {
             editable: true,
-            options: { queryName: 'products' }
+            options: {
+              queryName: 'products',
+              select: [
+                { name: 'id', hidden: true },
+                { name: 'sku', header: i18next.t('field.sku'), width: 200 },
+                { name: 'name', header: i18next.t('field.name'), width: 200 },
+                { name: 'description', header: i18next.t('field.description'), width: 500 }
+              ]
+            }
           },
           imex: { header: 'Product Ref', key: 'productRef', width: 50, type: 'string' },
           header: i18next.t('field.product_ref'),
+
           sortable: true,
           width: 230
+        },
+        {
+          type: 'object',
+          name: 'childProductRef',
+          record: {
+            editable: true,
+            options: {
+              queryName: 'products',
+              select: [
+                { name: 'id', hidden: true },
+                { name: 'sku', header: i18next.t('field.sku'), width: 200 },
+                { name: 'name', header: i18next.t('field.name'), width: 200 },
+                { name: 'description', header: i18next.t('field.description'), width: 300 },
+                { name: 'packingType', header: i18next.t('field.packingType'), width: 150 }
+              ]
+            }
+          },
+          imex: { header: 'Child Product Ref', key: 'childProductRef', width: 50, type: 'string' },
+          header: i18next.t('field.child_product_ref'),
+          sortable: true,
+          width: 230
+        },
+        {
+          type: 'float',
+          name: 'childProductQty',
+          record: { editable: true, align: 'center' },
+          imex: { header: 'Child Product Qty', key: 'childProductQty', width: 50, type: 'float' },
+          header: i18next.t('field.child_product_qty'),
+          width: 80
         },
         {
           type: 'string',
@@ -172,13 +211,27 @@ class ProductList extends localize(i18next)(PageView) {
           width: 300
         },
         {
-          type: 'string',
+          type: 'select',
           name: 'type',
-          record: { align: 'center', editable: true },
-          imex: { header: 'Type', key: 'type', width: 50, type: 'string' },
           header: i18next.t('field.type'),
+          record: {
+            editable: true,
+            align: 'center',
+            options: ['', ...Object.keys(productType).map(key => productType[key].name)]
+          },
           sortable: true,
-          width: 80
+          width: 120
+        },
+        {
+          type: 'select',
+          name: 'packingType',
+          header: i18next.t('field.packingType'),
+          record: {
+            editable: true,
+            align: 'center',
+            options: ['', ...Object.keys(packingType).map(key => packingType[key].name)]
+          },
+          width: 120
         },
         {
           type: 'integer',
@@ -207,10 +260,10 @@ class ProductList extends localize(i18next)(PageView) {
         },
         {
           type: 'float',
-          name: 'weightRatio',
+          name: 'density',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Weight Ratio', key: 'weightRatio', width: 50, type: 'float' },
-          header: i18next.t('field.weight_ratio'),
+          imex: { header: 'Density', key: 'density', width: 50, type: 'float' },
+          header: i18next.t('field.density'),
           width: 80
         },
         {
@@ -328,6 +381,7 @@ class ProductList extends localize(i18next)(PageView) {
             sortings: sorters
           })}) {
             items {
+              sku
               id
               name
               description
@@ -335,11 +389,17 @@ class ProductList extends localize(i18next)(PageView) {
                 name
                 description
               }
+              childProductRef{
+                name
+                description
+              }
+              childProductQty
+              packingType
               type
               expirationPeriod
               weightUnit
               weight
-              weightRatio
+              density
               lengthUnit
               width
               depth
@@ -372,7 +432,7 @@ class ProductList extends localize(i18next)(PageView) {
 
   _setProductRefCondition(_columns, _data, _column, record, _rowIndex) {
     this.config.columns.map(column => {
-      if (column.name === 'productRef') {
+      if (column.name === 'productRef' || column.name === 'childProductRef') {
         if (record && record.id) {
           column.record.options.basicArgs = { filters: [{ name: 'id', operator: 'noteq', value: record.id }] }
         } else {
@@ -386,7 +446,7 @@ class ProductList extends localize(i18next)(PageView) {
     if (patches && patches.length) {
       patches = patches.map(patch => {
         patch.weight = parseFloat(patch.weight)
-        patch.weightRatio = parseFloat(patch.weightRatio)
+        patch.density = parseFloat(patch.density)
         patch.width = parseFloat(patch.width)
         patch.depth = parseFloat(patch.depth)
         patch.height = parseFloat(patch.height)
