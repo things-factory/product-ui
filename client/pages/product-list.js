@@ -219,6 +219,18 @@ class ProductList extends localize(i18next)(PageView) {
             align: 'center',
             options: ['', ...Object.keys(productType).map(key => productType[key].name)]
           },
+          imex: {
+            header: i18next.t('field.type'),
+            key: 'type',
+            width: 50,
+            type: 'array',
+            arrData: productType.map(productType => {
+              return {
+                name: productType.name,
+                id: productType.name
+              }
+            })
+          },
           sortable: true,
           width: 120
         },
@@ -230,6 +242,18 @@ class ProductList extends localize(i18next)(PageView) {
             editable: true,
             align: 'center',
             options: ['', ...Object.keys(packingType).map(key => packingType[key].name)]
+          },
+          imex: {
+            header: i18next.t('field.packingType'),
+            key: 'packingType',
+            width: 50,
+            type: 'array',
+            arrData: packingType.map(packingType => {
+              return {
+                name: packingType.name,
+                id: packingType.name
+              }
+            })
           },
           width: 120
         },
