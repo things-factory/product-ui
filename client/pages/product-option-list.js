@@ -2,7 +2,9 @@ import '@things-factory/form-ui'
 import '@things-factory/grist-ui'
 import { i18next, localize } from '@things-factory/i18n-base'
 import { openPopup } from '@things-factory/layout-base'
-import { client, CustomAlert, gqlBuilder, isMobileDevice, PageView, ScrollbarStyles } from '@things-factory/shell'
+import { client, CustomAlert, PageView } from '@things-factory/shell'
+import { ScrollbarStyles } from '@things-factory/styles'
+import { gqlBuilder, isMobileDevice } from '@things-factory/utils'
 import gql from 'graphql-tag'
 import { css, html } from 'lit-element'
 import './product-option-values'
@@ -239,16 +241,11 @@ class ProductOptionList extends localize(i18next)(PageView) {
   }
 
   _openProductOptionValue(id, name) {
-    openPopup(
-      html`
-        <product-option-values .productOptionId="${id}"></product-option-values>
-      `,
-      {
-        backdrop: true,
-        size: 'large',
-        title: i18next.t('title.product_option_values') + '(' + name + ')'
-      }
-    )
+    openPopup(html` <product-option-values .productOptionId="${id}"></product-option-values> `, {
+      backdrop: true,
+      size: 'large',
+      title: i18next.t('title.product_option_values') + '(' + name + ')'
+    })
   }
 }
 

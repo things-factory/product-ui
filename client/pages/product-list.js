@@ -1,17 +1,11 @@
+import { getCodeByName } from '@things-factory/code-base'
 import '@things-factory/form-ui'
 import '@things-factory/grist-ui'
 import { i18next, localize } from '@things-factory/i18n-base'
-import { getCodeByName } from '@things-factory/code-base'
 import { openImportPopUp } from '@things-factory/import-ui'
-import {
-  client,
-  CustomAlert,
-  gqlBuilder,
-  isMobileDevice,
-  PageView,
-  ScrollbarStyles,
-  navigate
-} from '@things-factory/shell'
+import { client, CustomAlert, PageView } from '@things-factory/shell'
+import { ScrollbarStyles } from '@things-factory/styles'
+import { gqlBuilder, isMobileDevice } from '@things-factory/utils'
 import gql from 'graphql-tag'
 import { css, html } from 'lit-element'
 
@@ -168,7 +162,6 @@ class ProductList extends localize(i18next)(PageView) {
           },
           imex: { header: 'Product Ref', key: 'productRef', width: 50, type: 'string' },
           header: i18next.t('field.product_ref'),
-
           sortable: true,
           width: 230
         },

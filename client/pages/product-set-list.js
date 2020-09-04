@@ -1,17 +1,11 @@
+import { getCodeByName } from '@things-factory/code-base'
 import '@things-factory/form-ui'
 import '@things-factory/grist-ui'
 import { i18next, localize } from '@things-factory/i18n-base'
 import { openPopup } from '@things-factory/layout-base'
-import {
-  client,
-  CustomAlert,
-  gqlBuilder,
-  isMobileDevice,
-  PageView,
-  ScrollbarStyles,
-  navigate
-} from '@things-factory/shell'
-import { getCodeByName } from '@things-factory/code-base'
+import { client, CustomAlert, navigate, PageView } from '@things-factory/shell'
+import { ScrollbarStyles } from '@things-factory/styles'
+import { gqlBuilder, isMobileDevice } from '@things-factory/utils'
 import gql from 'graphql-tag'
 import { css, html } from 'lit-element'
 import './product-set-option'
