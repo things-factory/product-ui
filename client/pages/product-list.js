@@ -115,6 +115,13 @@ class ProductList extends localize(i18next)(PageView) {
         props: {
           searchOper: 'i_like'
         }
+      },
+      {
+        label: i18next.t('field.description'),
+        name: 'description',
+        props: {
+          searchOper: 'i_like'
+        }
       }
     ]
 
