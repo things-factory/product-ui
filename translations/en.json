@@ -29,5 +29,6 @@
   "text.nothing_selected": "nonthing selected",
   "text.there_is_nothing_to_delete": "there is nothing to delete",
   "text.there_is_nothing_to_save": "there is nothing to save",
-  "title.product": "product"
+  "title.product": "product",
+  "field.product_info": "product info"
 }
