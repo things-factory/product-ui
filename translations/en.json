@@ -13,6 +13,7 @@
   "field.name": "name",
   "field.child_product_ref": "child product ref",
   "field.child_product_qty": "child product qty",
+  "field.product_info": "product info",
   "field.product_ref": "product ref",
   "field.sku": "SKU",
   "field.type": "type",
@@ -29,6 +30,5 @@
   "text.nothing_selected": "nonthing selected",
   "text.there_is_nothing_to_delete": "there is nothing to delete",
   "text.there_is_nothing_to_save": "there is nothing to save",
-  "title.product": "product",
-  "field.product_info": "product info"
+  "title.product": "product"
 }
