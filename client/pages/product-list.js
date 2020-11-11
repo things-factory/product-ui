@@ -93,6 +93,7 @@ class ProductList extends localize(i18next)(PageView) {
   async pageInitialized() {
     const productType = await getCodeByName('PRODUCT_TYPES')
     const packingType = await getCodeByName('PACKING_TYPES')
+    const primaryUnit = await getCodeByName('PRIMARY_UNIT')
 
     this.searchFields = [
       {
@@ -167,7 +168,7 @@ class ProductList extends localize(i18next)(PageView) {
         },
         {
           type: 'object',
-          name: 'childProductRef',
+          name: 'parentProductRef',
           record: {
             editable: true,
             options: {
@@ -181,17 +182,17 @@ class ProductList extends localize(i18next)(PageView) {
               ]
             }
           },
-          imex: { header: 'Child Product Ref', key: 'childProductRef', width: 50, type: 'string' },
-          header: i18next.t('field.child_product_ref'),
+          imex: { header: i18next.t('field.parent_product_ref'), key: 'parentProductRef', width: 50, type: 'string' },
+          header: i18next.t('field.parent_product_ref'),
           sortable: true,
           width: 230
         },
         {
           type: 'float',
-          name: 'childProductQty',
+          name: 'bundleQty',
           record: { editable: true, align: 'center' },
-          imex: { header: 'Child Product Qty', key: 'childProductQty', width: 50, type: 'float' },
-          header: i18next.t('field.child_product_qty'),
+          imex: { header: i18next.t('field.bundle_qty'), key: 'bundleQty', width: 50, type: 'float' },
+          header: i18next.t('field.bundle_qty'),
           width: 80
         },
         {
@@ -316,6 +317,37 @@ class ProductList extends localize(i18next)(PageView) {
           width: 80
         },
         {
+          type: 'select',
+          name: 'primaryUnit',
+          record: {
+            editable: true,
+            align: 'center',
+            options: ['', ...Object.keys(primaryUnit).map(key => primaryUnit[key].name)]
+          },
+          imex: {
+            header: i18next.t('field.primaryUnit'),
+            key: 'primaryUnit',
+            width: 50,
+            type: 'array',
+            arrData: primaryUnit.map(primaryUnit => {
+              return {
+                name: primaryUnit.name,
+                id: primaryUnit.name
+              }
+            })
+          },
+          header: `${i18next.t('field.primary_unit')}`,
+          width: 80
+        },
+        {
+          type: 'float',
+          name: 'primaryValue',
+          record: { editable: true, align: 'center' },
+          imex: { header: `${i18next.t('field.primary_value')}`, key: 'primaryValue', width: 60, type: 'float' },
+          header: `${i18next.t('field.primary_value')}`,
+          width: 100
+        },
+        {
           type: 'string',
           name: 'auxUnit1',
           record: { editable: true, align: 'center' },
@@ -406,11 +438,11 @@ class ProductList extends localize(i18next)(PageView) {
                 name
                 description
               }
-              childProductRef{
+              parentProductRef{
                 name
                 description
               }
-              childProductQty
+              bundleQty
               packingType
               type
               expirationPeriod
@@ -421,6 +453,8 @@ class ProductList extends localize(i18next)(PageView) {
               width
               depth
               height
+              primaryUnit
+              primaryValue
               auxUnit1
               auxValue1
               auxUnit2
@@ -449,7 +483,7 @@ class ProductList extends localize(i18next)(PageView) {
 
   _setProductRefCondition(_columns, _data, _column, record, _rowIndex) {
     this.config.columns.map(column => {
-      if (column.name === 'productRef' || column.name === 'childProductRef') {
+      if (column.name === 'productRef' || column.name === 'parentProductRef') {
         if (record && record.id) {
           column.record.options.basicArgs = { filters: [{ name: 'id', operator: 'noteq', value: record.id }] }
         } else {
@@ -468,11 +502,11 @@ class ProductList extends localize(i18next)(PageView) {
         patch.depth = parseFloat(patch.depth)
         patch.height = parseFloat(patch.height)
         patch.expirationPeriod = parseFloat(patch.expirationPeriod)
-        patch.childProductQty = parseFloat(patch.childProductQty)
+        patch.bundleQty = parseFloat(patch.bundleQty)
 
-        if (patch.childProductRef) {
-          delete patch.childProductRef.sku
-          delete patch.childProductRef.packingType
+        if (patch.parentProductRef) {
+          delete patch.parentProductRef.sku
+          delete patch.parentProductRef.packingType
         }
 
         if (patch.productRef) {
