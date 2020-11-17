@@ -325,7 +325,7 @@ class ProductList extends localize(i18next)(PageView) {
             options: ['', ...Object.keys(primaryUnit).map(key => primaryUnit[key].name)]
           },
           imex: {
-            header: i18next.t('field.std_unit'),
+            header: i18next.t('field.primaryUnit'),
             key: 'primaryUnit',
             width: 50,
             type: 'array',
@@ -336,15 +336,15 @@ class ProductList extends localize(i18next)(PageView) {
               }
             })
           },
-          header: `${i18next.t('field.std_unit')}`,
+          header: `${i18next.t('field.primary_unit')}`,
           width: 80
         },
         {
           type: 'float',
           name: 'primaryValue',
           record: { editable: true, align: 'center' },
-          imex: { header: `${i18next.t('field.std_unit_value')}`, key: 'primaryValue', width: 60, type: 'float' },
-          header: `${i18next.t('field.std_unit_value')}`,
+          imex: { header: `${i18next.t('field.primary_value')}`, key: 'primaryValue', width: 60, type: 'float' },
+          header: `${i18next.t('field.primary_value')}`,
           width: 100
         },
         {
