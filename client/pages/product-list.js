@@ -93,7 +93,7 @@ class ProductList extends localize(i18next)(PageView) {
   async pageInitialized() {
     const productType = await getCodeByName('PRODUCT_TYPES')
     const packingType = await getCodeByName('PACKING_TYPES')
-    const primaryUnit = await getCodeByName('PRIMARY_UNIT')
+    const primaryUnit = await getCodeByName('WEIGHT_UNITS')
 
     this.searchFields = [
       {
